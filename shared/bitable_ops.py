@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from .config import BASE_TOKEN, EXPENSE_TABLE_ID
@@ -40,18 +39,20 @@ APPROVAL_PASSED = "通过"
 APPROVAL_REJECTED = "拒绝"
 
 # ===========================================================================
-# 字段提取辅助
+# 字段提取辅助（简化版）
 # ===========================================================================
 
-def _field_val(row: List, field_names: List[str], key: str) -> Any:
-    for i, name in enumerate(field_names):
-        if name == key and i < len(row):
-            return row[i]
-    return None
+def get_field_text(record: Dict[str, Any], field_name: str) -> str:
+    """从记录中提取字段文本值
 
+    Args:
+        record: 记录字典
+        field_name: 字段名
 
-def _field_text(row: List, field_names: List[str], key: str) -> str:
-    val = _field_val(row, field_names, key)
+    Returns:
+        字段文本值，无则返回空字符串
+    """
+    val = record.get(field_name)
     if val is None:
         return ""
     if isinstance(val, str):
@@ -59,20 +60,31 @@ def _field_text(row: List, field_names: List[str], key: str) -> str:
     if isinstance(val, (int, float)):
         return str(val)
     if isinstance(val, list) and val:
-        if isinstance(val[0], dict):
-            return val[0].get("text", "") or val[0].get("name", "") or val[0].get("id", "")
-        return str(val[0])
+        item = val[0]
+        if isinstance(item, dict):
+            return item.get("text", "") or item.get("name", "") or item.get("id", "")
+        return str(item)
     if isinstance(val, dict):
-        return val.get("text", "") or val.get("name", "") or val.get("id", "") or str(val)
+        return val.get("text", "") or val.get("name", "") or val.get("id", "") or ""
     return str(val)
 
 
-def _field_user_id(row: List, field_names: List[str], key: str) -> str:
-    val = _field_val(row, field_names, key)
+def get_field_user_id(record: Dict[str, Any], field_name: str) -> str:
+    """从记录中提取用户字段的 open_id
+
+    Args:
+        record: 记录字典
+        field_name: 字段名
+
+    Returns:
+        用户 open_id，无则返回空字符串
+    """
+    val = record.get(field_name)
     if isinstance(val, list) and val:
-        if isinstance(val[0], dict):
-            return val[0].get("id", "")
-        return str(val[0])
+        item = val[0]
+        if isinstance(item, dict):
+            return item.get("id", "")
+        return str(item)
     if isinstance(val, dict):
         return val.get("id", "")
     if isinstance(val, str):
@@ -80,12 +92,55 @@ def _field_user_id(row: List, field_names: List[str], key: str) -> str:
     return ""
 
 
+def has_field_value(record: Dict[str, Any], field_name: str) -> bool:
+    """检查字段是否有值
+
+    Args:
+        record: 记录字典
+        field_name: 字段名
+
+    Returns:
+        字段是否有非空值
+    """
+    val = record.get(field_name)
+    if val is None:
+        return False
+    if isinstance(val, str):
+        return bool(val.strip())
+    if isinstance(val, list):
+        return len(val) > 0
+    if isinstance(val, (int, float)):
+        return True
+    return bool(val)
+
+
+# 兼容旧接口（已废弃，保留向后兼容）
+def _field_text(row: List, field_names: List[str], key: str) -> str:
+    """已废弃：请使用 get_field_text"""
+    record = {name: val for name, val in zip(field_names, row)}
+    return get_field_text(record, key)
+
+
+def _field_user_id(row: List, field_names: List[str], key: str) -> str:
+    """已废弃：请使用 get_field_user_id"""
+    record = {name: val for name, val in zip(field_names, row)}
+    return get_field_user_id(record, key)
+
+
 # ===========================================================================
 # 记录查询
 # ===========================================================================
 
 def query_records(table_id: str, *field_names: str) -> List[Dict[str, Any]]:
-    """查询表中所有记录"""
+    """查询表中所有记录
+
+    Args:
+        table_id: 表格 ID
+        *field_names: 字段名列表
+
+    Returns:
+        记录字典列表
+    """
     if not field_names:
         return []
 
@@ -103,10 +158,10 @@ def query_records(table_id: str, *field_names: str) -> List[Dict[str, Any]]:
         logger.error(f"查询记录返回异常: {result}")
         return []
 
-    data = result.get("data", {})
-    rows = data.get("data", [])
-    fields = data.get("fields", [])
-    ids = data.get("record_id_list", [])
+    data = result.get("data") or {}
+    rows = data.get("data") or []
+    fields = data.get("fields") or []
+    ids = data.get("record_id_list") or []
 
     records: List[Dict[str, Any]] = []
     for i, row in enumerate(rows):
@@ -121,7 +176,11 @@ def query_records(table_id: str, *field_names: str) -> List[Dict[str, Any]]:
 
 
 def query_all_expenses() -> List[Dict[str, Any]]:
-    """查询所有报销单"""
+    """查询所有报销单
+
+    Returns:
+        报销单记录列表
+    """
     field_names = [
         "报销摘要", "报销科目", "财务审批人员", "报销人",
         "财务审批", "报销金额", "备注", "报销日期", "报销状态",
@@ -134,7 +193,14 @@ def query_all_expenses() -> List[Dict[str, Any]]:
 # ===========================================================================
 
 def _make_payload(fields: Dict[str, Any]) -> Dict[str, Any]:
-    """将字段名映射转为 API 负载"""
+    """将字段名映射转为 API 负载
+
+    Args:
+        fields: 字段字典
+
+    Returns:
+        API 负载字典
+    """
     payload: Dict[str, Any] = {}
     user_fields = {"报销人", "财务审批人员"}
     for fname, value in fields.items():
@@ -151,7 +217,16 @@ def _make_payload(fields: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def upsert_record(table_id: str, record_id: str, fields: Dict[str, Any]) -> bool:
-    """更新记录"""
+    """更新记录
+
+    Args:
+        table_id: 表格 ID
+        record_id: 记录 ID
+        fields: 要更新的字段字典
+
+    Returns:
+        是否成功
+    """
     payload = _make_payload(fields)
     r = run_cli("base", "+record-upsert", "--base-token", BASE_TOKEN, "--table-id", table_id,
                  "--record-id", record_id, "--json", json.dumps(payload, ensure_ascii=False))
@@ -162,10 +237,13 @@ def upsert_record(table_id: str, record_id: str, fields: Dict[str, Any]) -> bool
 
 
 def update_status(record_id: str, new_status: str) -> bool:
-    """更新报销状态"""
+    """更新报销状态
+
+    Args:
+        record_id: 记录 ID
+        new_status: 新状态值
+
+    Returns:
+        是否成功
+    """
     return upsert_record(EXPENSE_TABLE_ID, record_id, {"报销状态": new_status})
-
-
-def update_approval(record_id: str, approval_result: str) -> bool:
-    """更新财务审批结果"""
-    return upsert_record(EXPENSE_TABLE_ID, record_id, {"财务审批": approval_result})
