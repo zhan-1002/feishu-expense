@@ -25,7 +25,7 @@ EF: Dict[str, str] = {  # Expense Fields
     "报销金额":     "fldxMKs8Hy",
     "备注":         "fldPrV7tWI",
     "报销日期":     "fldt5b0Avt",
-    "报销状态":     "",  # 待创建
+    "报销状态":     "flde8iD99Z",
 }
 
 # 状态常量
