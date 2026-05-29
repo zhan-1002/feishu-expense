@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # 项目根目录
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # lark-cli 路径
 LARK_CLI = "lark-cli"

@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 # 项目根目录（config.py 在 shared/ 下，往上 1 层）
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # lark-cli 路径（Linux 下通过 npm 全局安装，位于 PATH 中）
 LARK_CLI = "lark-cli"

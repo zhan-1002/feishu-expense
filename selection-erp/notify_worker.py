@@ -27,8 +27,7 @@ from shared.bitable_ops import (
     SEND_STATUS_SENT,
     SEND_STATUS_FAILED,
 )
-import os as _os2, sys as _sys2
-_sys2.path.insert(0, _os2.path.dirname(_os2.path.dirname(_os2.path.dirname(_os2.path.abspath(__file__)))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from common.feishu_api import run_cli
 
