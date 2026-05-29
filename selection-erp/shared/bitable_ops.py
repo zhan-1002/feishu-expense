@@ -17,7 +17,10 @@ from .config import (
     NOTIFY_TABLE_ID,
     BASE_TOKEN,
 )
-from .feishu_api import run_cli
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
+
+from common.feishu_api import run_cli
 
 logger = logging.getLogger(__name__)
 

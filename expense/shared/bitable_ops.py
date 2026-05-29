@@ -6,7 +6,10 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from .config import BASE_TOKEN, EXPENSE_TABLE_ID
-from .feishu_api import run_cli
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
+
+from common.feishu_api import run_cli
 
 logger = logging.getLogger(__name__)
 

@@ -27,7 +27,10 @@ from shared.bitable_ops import (
     SEND_STATUS_SENT,
     SEND_STATUS_FAILED,
 )
-from shared.feishu_api import run_cli
+import os as _os2, sys as _sys2
+_sys2.path.insert(0, _os2.path.dirname(_os2.path.dirname(_os2.path.dirname(_os2.path.abspath(__file__)))))
+
+from common.feishu_api import run_cli
 
 # 配置日志
 logging.basicConfig(
