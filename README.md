@@ -8,6 +8,7 @@
 |------|------|------|
 | expense | `expense/` | 费用报销：待提交 → 待审批 → 已通过/已拒绝 |
 | selection-erp | `selection-erp/` | 选品ERP：派发 → 调研 → 初审 → 二优 → 终审 → 采购/结束/退回 |
+| internship | `internship/` | 实习工时：周出勤记录 → 月度汇总 → 财务审批 |
 
 ## 架构
 
@@ -22,6 +23,13 @@ feishu-expense/
 │   ├── shared/                 ← 模块专用配置 & CRUD & 卡片
 │   ├── scan_worker.py          ← 8阶段状态机扫描引擎
 │   └── notify_worker.py        ← 通知队列发送
+├── internship/                  ← 实习工时模块
+│   ├── shared/                 ← 模块专用配置 & CRUD
+│   ├── scan_worker.py          ← 出勤扫描引擎
+│   ├── attendance_ops.py       ← 出勤记录操作
+│   ├── calendar.py             ← 日历/节假日处理
+│   ├── summary.py              ← 月度汇总逻辑
+│   └── DESIGN.md               ← 设计文档
 ├── deploy.sh                   ← 一键部署
 ├── run.sh                      ← 启动脚本
 ├── .env.example                ← 环境变量模板
@@ -50,6 +58,7 @@ bash deploy.sh selection-erp  # 只部署选品ERP
 bash run.sh                   # 列出可用模块
 bash run.sh expense           # 启动费用报销
 bash run.sh selection-erp     # 启动选品ERP
+bash run.sh internship        # 启动实习工时
 bash run.sh all               # 启动全部
 ```
 

@@ -5,6 +5,7 @@
 #   bash run.sh                  # 列出可用模块
 #   bash run.sh expense          # 启动费用报销模块
 #   bash run.sh selection-erp    # 启动选品ERP模块
+#   bash run.sh internship       # 启动实习工时模块
 #   bash run.sh all              # 启动所有模块
 
 set -e
@@ -18,6 +19,7 @@ if [ -z "$MODULE" ]; then
     echo "可用模块:"
     echo "  expense        费用报销扫描引擎"
     echo "  selection-erp  选品ERP扫描引擎 + 通知发送"
+    echo "  internship     实习工时扫描引擎"
     echo "  all            启动所有模块"
     echo ""
     echo "用法: bash run.sh <模块名>"
@@ -56,6 +58,10 @@ fi
 
 if [ "$MODULE" = "all" ] || [ "$MODULE" = "selection-erp" ]; then
     _start_module "selection-erp" "selection-erp/scan_worker.py"
+fi
+
+if [ "$MODULE" = "all" ] || [ "$MODULE" = "internship" ]; then
+    _start_module "internship" "internship/scan_worker.py"
 fi
 
 echo ""
